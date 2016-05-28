@@ -8,7 +8,16 @@ Right now, it is still incomplete and should not be considered secure.
 
 This project is licensed under GPLv3, so please create beautiful things with it.
 
+#Installation (short)
+publinx is a uWSGI "app". Install and configure uWSGI as you like it. Point uWSGI to `module=publinx` and `callable=publinx`.
+
+Copy the config.sample.py to config.py and set the variables. The `configfile` is expected to be found inside the `basedir`.
+
+Look at `.publinx.sample.json` or the configuration section in this file for how to create public links.
+
 #Installation
+
+These installation instructions have been adapted from [http://www.markjberger.com/flask-with-virtualenv-uwsgi-nginx/](http://www.markjberger.com/flask-with-virtualenv-uwsgi-nginx/) and should be followed with caution. You should rather read the official installation instructions and adapt them for your needs.
 
 Install python and flask.
 ```
@@ -93,7 +102,7 @@ This file can now be accessed via `http://www.example.com/simple-file.ext`.
 
 publinx also supports subfolders, so you can also add `folder/file.ext` to the config to return this file.
 
-## Return a file on a different path
+## Returning a file on a different path
 If you want to return a file from a different URL, use the public filename as the key and add a `path` parameter to the values:
 ```json
 {
@@ -104,7 +113,7 @@ If you want to return a file from a different URL, use the public filename as th
 ```
 Now, the file at `folder/hidden-filename.ext` will be returned when `http://www.example.com/public-filename.ext` is requested.
 
-## Publish a folder listing
+## Publishing a folder listing
 To publish the contents of a folder, add it to the configuration like you would with a regular file.
 
 If you make all folders and files in this directory available, add `"recursive": true` to the setting.
