@@ -148,3 +148,13 @@ To exclude certain files or subfolders from the directory, place them in an `exc
     "directory/secret/still-available.file": {}
 }
 ```
+## Password protection
+The most simple way to protect a file with a password is to require a GET parameter. This can be achieved by adding a parameter `password` to the file's entry.
+```json
+{
+    "secret.file": {
+        "password": "hunter2"
+    }
+}
+```
+Now, you can only access this file via http://www.example.com/secret.file?password=hunter2. If the wrong password or no password is given, it acts as if the file does not exist and returns a 404 error to avoid obviously leaking information.

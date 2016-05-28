@@ -14,5 +14,8 @@
             "top-secret.file"
         ]
     },
-    "directory/secret/still-available.file": {}
+    "directory/secret/still-available.file": {},
+    "secret.file": {
+        "password": "hunter2"
+    }
 }
