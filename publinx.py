@@ -10,6 +10,7 @@ publinx = Flask(__name__)
 publinx.debug = True
 
 
+@publinx.route('/', defaults={'request': ''})
 @publinx.route('/<path:request>')
 def index(request):
     filename = get_real_path(request)
@@ -41,8 +42,8 @@ def get_real_path(request):
     else:
         filename = os.path.join(descriptor, rest)
 
-    if filename[-1] == '/':
-        filename = filename[:-1]
+    if len(filename) > 0 and filename[-1] != '/':
+        filename += '/'
 
     return filename
 
@@ -81,7 +82,8 @@ def send_directory(full, title):
 
 def listdir(path):
     """
-    Reads the entries of a given directory and returns them ordered by type and name
+    Reads the entries of a given directory and returns them ordered by type and name.
+    Entries starting with a dot are ignored.
     :param path: The path
     :return: A list containing dicts for the entries, each with the keys name, size (human-readable) and timestamp
     """
@@ -103,6 +105,8 @@ def listdir(path):
         return "%.1f%s%s" % (num, 'Yi', suffix)
 
     for entry in contents:
+        if entry[0] == '.':
+            continue
         if os.path.isdir(os.path.join(path, entry)):
             folderlist.append({
                 "name": entry,

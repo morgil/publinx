@@ -84,12 +84,14 @@ sudo service nginx restart
 sudo service uwsgi restart
 ```
 
-Copy config.sample.py to config.py, change basedir to your data directory and, if needed, change the name of the cofig file.
+Copy config.sample.py to config.py, change basedir to your data directory and, if needed, change the name of the config file.
 
 
 #Configuring publinx:
 
 All configuration takes place in the config file, which is basic JSON syntax.
+
+Note that there are no checks for valid but stupid configurations. If you want to make your home directory or your config file publicly available, I won't stop you.
 
 ## Simple file output
 To simply return a file with the same path as it has in your directory, add it as a key to the config file:
