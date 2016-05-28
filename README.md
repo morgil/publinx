@@ -84,7 +84,7 @@ All configuration takes place in the config file, which is basic JSON syntax.
 
 ## Simple file output
 To simply return a file with the same path as it has in your directory, add it as a key to the config file:
-```
+```json
 {
     "simple-file.ext": {}
 }
@@ -95,11 +95,24 @@ publinx also supports subfolders, so you can also add `folder/file.ext` to the c
 
 ## Return a file on a different path
 If you want to return a file from a different URL, use the public filename as the key and add a `path` parameter to the values:
-```
+```json
 {
     "public-filename.ext": {
         "path": "folder/hidden-filename.ext"
     }
 }
 ```
-Now, the file named `hidden-filename.ext` will be returned when `http://www.example.com/public-filename.ext` is requested.
+Now, the file at `folder/hidden-filename.ext` will be returned when `http://www.example.com/public-filename.ext` is requested.
+
+## Publish a folder listing
+To publish the contents of a folder, add it to the configuration like you would with a regular file.
+
+If you make all folders and files in this directory available, add `"recursive": true` to the setting.
+
+```json
+{
+    "directory/with/subdirectories": {
+        "recursive": true
+    }
+}
+```

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index of {{ directory }}</title>
+</head>
+<body>
+<h1>Index of /{{ directory }}</h1>
+<table>
+    <tr>
+        <th>Name</th><th>Last modified</th><th>Size</th>
+    </tr>
+{% for entry in contents %}
+    <tr>
+        <td><a href="/{{directory}}/{{ entry.name }}">{{ entry.name }}</a></td><td>{{ entry.timestamp }}</td><td>{{ entry.size }}</td>
+    </tr>
+{% endfor %}
+</table>
+</body>
+</html>
