@@ -1,0 +1,7 @@
+{
+  "simple-file.ext": {},
+  "folder/file.ext": {},
+  "public-filename.ext": {
+    "path": "folder/hidden-filename.ext"
+  }
+}
