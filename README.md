@@ -9,7 +9,7 @@ Right now, it is still incomplete and should not be considered secure.
 This project is licensed under GPLv3, so please create beautiful things with it.
 
 #Installation (short)
-publinx is a uWSGI "app". Install and configure uWSGI as you like it. Point uWSGI to `module=publinx` and `callable=publinx`.
+publinx is a uWSGI "app". Install and configure uWSGI as you like it. Install the Python module Flask. Point uWSGI to `module=publinx` and `callable=publinx`.
 
 Copy the config.sample.py to config.py and set the variables. The `configfile` is expected to be found inside the `basedir`.
 
