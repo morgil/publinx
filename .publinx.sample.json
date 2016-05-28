@@ -1,10 +1,18 @@
 {
-  "simple-file.ext": {},
-  "folder/file.ext": {},
-  "public-filename.ext": {
-    "path": "folder/hidden-filename.ext"
-  },
-  "directory/with/subdirectories": {
-    "recursive": true
-  }
+    "simple-file.ext": {},
+    "folder/file.ext": {},
+    "public-filename.ext": {
+        "path": "folder/hidden-filename.ext"
+    },
+    "directory/with/subdirectories": {
+        "recursive": true
+    },
+    "directory": {
+        "recursive": true,
+        "exclude": [
+            "secret",
+            "top-secret.file"
+        ]
+    },
+    "directory/secret/still-available.file": {}
 }

@@ -116,3 +116,16 @@ If you make all folders and files in this directory available, add `"recursive":
     }
 }
 ```
+To exclude certain files or subfolders from the directory, place them in an `exclude` list. Note that the most specific configuration always wins, in the example below, the file `still-available.file` can be acessed although it is in an excluded directory. Of course, this also works for subdirectories.
+```json
+{
+    "directory": {
+        "recursive": true,
+        "exclude": [
+            "secret",
+            "top-secret.file"
+        ]
+    },
+    "directory/secret/still-available.file": {}
+}
+```

@@ -10,39 +10,64 @@ publinx = Flask(__name__)
 publinx.debug = True
 
 
-@publinx.route('/<path:requested_file>')
-def index(requested_file):
-    # Load configuration
+@publinx.route('/<path:request>')
+def index(request):
+    filename = get_real_path(request)
+
+    if filename is None:
+        abort(404)
+
+    return send_file_or_directory(filename, request)
+
+
+def get_real_path(request):
     with open(os.path.join(config.basedir, config.configfile)) as fp:
         filelist = json.load(fp)
 
-    # Check if the requested file is in the config file
-    if requested_file not in filelist:
-        directory, _ = os.path.split(requested_file)
-        while directory != '':
-            if directory in filelist and "recursive" in filelist[directory] and filelist[directory]["recursive"]:
-                break
-            directory, _ = os.path.split(directory)
-        else:
-            abort(404)
+    descriptor, rest = get_most_accurate_descriptor(request, filelist)
 
-    # Finally serve the file (if the file is in a recursively marked directory, it's still not in filelist
-    if requested_file in filelist and "path" in filelist[requested_file]:
-        filename = filelist[requested_file]["path"]
+    if descriptor is None:
+        return None
+
+    if rest != '' and "recursive" in filelist[descriptor] and filelist[descriptor]["recursive"]:
+        if "exclude" in filelist[descriptor]:
+            print(filelist[descriptor]["exclude"])
+            excluded, _ = get_most_accurate_descriptor(rest, filelist[descriptor]["exclude"])
+            if excluded is not None:
+                return None
+
+    if "path" in filelist[descriptor]:
+        filename = os.path.join(filelist[descriptor]["path"], rest)
     else:
-        filename = requested_file
+        filename = os.path.join(descriptor, rest)
 
-    print(filename)
+    if filename[-1] == '/':
+        filename = filename[:-1]
 
-    return send_file_or_directory(config.basedir, filename)
+    return filename
 
 
-def send_file_or_directory(basedir, location):
-    full = os.path.join(basedir, location)
+def get_most_accurate_descriptor(name, directory_list):
+    if name in directory_list:
+        return name, ''
+
+    head, tailpart = os.path.split(name)
+    tail = tailpart
+    while head != '':
+        if head in directory_list:
+            return head, tail
+        head, tailpart = os.path.split(head)
+        tail = os.path.join(tailpart, tail)
+
+    return None, None
+
+
+def send_file_or_directory(location, request):
+    full = os.path.join(config.basedir, location)
     if not os.path.exists(full):
-        raise IOError("Target file or directory does not exist.")
+        raise IOError("Target file or directory does not exist: %s", full)
     if os.path.isdir(full):
-        return send_directory(full, location)
+        return send_directory(full, request)
     if os.path.isfile(full):
         return send_file(full)
 
