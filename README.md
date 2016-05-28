@@ -1,6 +1,12 @@
 # publinx
-A simple tool to make files available in an otherwise non-public directory
+A simple tool to make files available in an otherwise non-public directory. Works with nginx+uWSGI+Python.
 
+I made this because I [synchronize](https://www.syncthing.net/) my data to my server and sometimes want other people to access certain files.
+ With this tool, I can selectively give out access to files by simply editing a JSON file in my synchronized directory.
+
+Right now, it is still incomplete and should not be considered secure.
+
+This project is licensed under GPLv3, so please create beautiful things with it.
 
 #Installation
 
