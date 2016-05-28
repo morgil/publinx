@@ -8,6 +8,12 @@ Right now, it is still incomplete and should not be considered secure.
 
 This project is licensed under GPLv3, so please create beautiful things with it.
 
+#Table of contents
+1. [Installation (short)](#installation-short)
+2. [Installation](#installation)
+3. [Configuration](#configuration)
+4. [Creating public links](#creating-public-links)
+
 #Installation (short)
 publinx is a uWSGI "app". Install and configure uWSGI as you like it. Install the Python module Flask. Point uWSGI to `module=publinx` and `callable=publinx`.
 
@@ -84,10 +90,12 @@ sudo service nginx restart
 sudo service uwsgi restart
 ```
 
+
+#Configuration:
 Copy config.sample.py to config.py, change basedir to your data directory and, if needed, change the name of the config file.
 
 
-#Configuring publinx:
+#Creating public links
 
 All configuration takes place in the config file, which is basic JSON syntax.
 
