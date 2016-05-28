@@ -17,5 +17,8 @@
     "directory/secret/still-available.file": {},
     "secret.file": {
         "password": "hunter2"
+    },
+    "datedfile": {
+        "expires": "2016-05-29T01:34:00+0200"
     }
 }

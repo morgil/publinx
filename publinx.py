@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 
+import dateutil.parser
 from flask import Flask, send_file, abort, render_template, request
 
 import config
@@ -46,6 +47,12 @@ def get_real_path(requested_path):
         return None
 
     requested_entry = filelist[descriptor]
+
+    if "expires" in requested_entry:
+        expires = dateutil.parser.parse(requested_entry["expires"])
+        print(expires)
+        if expires < datetime.datetime.now(tz=expires.tzinfo):
+            return None
 
     # If rest is not empty, there is an entry containing a part of the request. Let's check if requests to its
     # subfolders are allowed...

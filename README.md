@@ -8,20 +8,20 @@ Right now, it is still incomplete and should not be considered secure.
 
 This project is licensed under GPLv3, so please create beautiful things with it.
 
-#Table of contents
+# Table of contents
 1. [Installation (short)](#installation-short)
 2. [Installation](#installation)
 3. [Configuration](#configuration)
 4. [Creating public links](#creating-public-links)
 
-#Installation (short)
-publinx is a uWSGI "app". Install and configure uWSGI as you like it. Install the Python module Flask. Point uWSGI to `module=publinx` and `callable=publinx`.
+# Installation (short)
+publinx is a uWSGI "app". Install and configure uWSGI as you like it. Install the Python modules Flask and dateutil. Point uWSGI to `module=publinx` and `callable=publinx`.
 
 Copy the config.sample.py to config.py and set the variables. The `configfile` is expected to be found inside the `basedir`.
 
 Look at `.publinx.sample.json` or the configuration section in this file for how to create public links.
 
-#Installation
+# Installation
 
 These installation instructions have been adapted from [http://www.markjberger.com/flask-with-virtualenv-uwsgi-nginx/](http://www.markjberger.com/flask-with-virtualenv-uwsgi-nginx/) and should be followed with caution. You should rather read the official installation instructions and adapt them for your needs.
 
@@ -91,11 +91,11 @@ sudo service uwsgi restart
 ```
 
 
-#Configuration:
+# Configuration:
 Copy config.sample.py to config.py, change basedir to your data directory and, if needed, change the name of the config file.
 
 
-#Creating public links
+# Creating public links
 
 All configuration takes place in the config file, which is basic JSON syntax.
 
@@ -158,3 +158,14 @@ The most simple way to protect a file with a password is to require a GET parame
 }
 ```
 Now, you can only access this file via http://www.example.com/secret.file?password=hunter2. If the wrong password or no password is given, it acts as if the file does not exist and returns a 404 error to avoid obviously leaking information.
+
+## Expiring links
+
+To create a link that expires after a certain time, add a parameter `expires` with a ISO 8601 formatted date and time (or any other string that can be parsed by `dateutil.parser.parse`). After this time (on the server), the link won'be accessible any more and return 404.
+```json
+{
+    "datedfile": {
+        "expires": "2016-05-29T01:34:00+0200"
+    }
+}
+```
