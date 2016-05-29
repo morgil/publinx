@@ -92,7 +92,10 @@ def get_real_path(requested_path):
 
     # Check if the request maps to a different directory
     if "path" in requested_entry:
-        filename = os.path.join(requested_entry["path"], rest)
+        if rest != '':
+            filename = os.path.join(requested_entry["path"], rest)
+        else:
+            filename = requested_entry["path"]
     elif rest != '':
         filename = os.path.join(descriptor, rest)
     else:
