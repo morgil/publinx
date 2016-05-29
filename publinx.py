@@ -11,7 +11,6 @@ from flask import Flask, send_file, abort, render_template, request, Response
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
-app.debug = True
 
 
 class Status(Enum):
