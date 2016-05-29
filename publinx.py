@@ -22,7 +22,6 @@ class Status(Enum):
     Expired = 4
     Excluded = 5
     NoPasswordProvided = 6
-    ContainsIllegalDirectoryTraversal = 7
 
 
 @app.route('/', defaults={'requested_path': ''})
