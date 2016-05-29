@@ -1,8 +1,9 @@
 # publinx
-A simple tool to make files available in an otherwise non-public directory. Works with nginx+uWSGI+Python+Flask.
+A simple tool to make files available in an otherwise non-public directory. Intended to be used with nginx + uWSGI + Python 3 + Flask.
 
-I made this because I [synchronize](https://www.syncthing.net/) my data to my server and sometimes want other people to access certain files.
- With this tool, I can selectively give out access to files by simply editing a JSON file in my synchronized directory.
+I made this because I [synchronize](https://www.syncthing.net/) my data to my server and sometimes want other people to access certain files. With this tool, I can selectively give out access by simply editing a JSON file in my synchronized directory.
+
+publinx can serve files and simple directory listings under their original or rewritten paths, can make links expire after a certain date and implements password protection via GET parameters or HTTP authentication.
 
 This project is licensed under GPLv3, so please create beautiful things with it.
 
@@ -16,7 +17,7 @@ publinx was mostly created at the very awesome [Gulaschprogrammiernacht](https:/
 # Installation
 publinx is a uWSGI "app".
 
-For the installation of uWSGI, consult a guide you trust. I have used [http://www.markjberger.com/flask-with-virtualenv-uwsgi-nginx/](http://www.markjberger.com/flask-with-virtualenv-uwsgi-nginx/).
+For the installation of uWSGI and Python 3, consult a guide you trust.
 
 Additionally, install the Python module python-dateutil.
 
@@ -31,7 +32,7 @@ Copy config.sample.py to config.py, change BASEDIR to your data directory and, i
 
 All configuration takes place in the link file `.publinx.json`, which contains basic JSON syntax.
 
-Note that there are no checks for valid but stupid configurations. If you want to make your home directory or your link file publicly available, I won't stop you.
+Be careful as there are no checks for valid but stupid configurations. If you want to make your home directory or your link file publicly available, I won't stop you.
 
 
 ## Simple file output
