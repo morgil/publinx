@@ -50,7 +50,7 @@ def parse_request(requested_path):
     Parses the config file and returns the server-side path for the requested file.
     If the file can't or may not be accessed with this request, it returns None.
     :param requested_path: The request data (without a leading slash)
-    :return: The server-side path
+    :return: A Status value and the server-side path, if existing
     """
     with open(os.path.join(app.config['BASEDIR'], app.config['LINKFILE'])) as fp:
         filelist = json.load(fp)
@@ -173,8 +173,6 @@ def send_directory(local_path, remote_url):
     if not os.path.isdir(local_path):
         raise IOError("This is not a directory.")
     contents = listdir(local_path)
-    if len(remote_url) == 0 or remote_url[-1] != "/":
-        remote_url += "/"
     if request.args.get('password'):
         return render_template('directory.html', directory=remote_url, contents=contents,
                                password=request.args.get('password'))

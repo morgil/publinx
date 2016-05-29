@@ -61,9 +61,9 @@ Now, the file at `folder/hidden-filename.ext` will transparently be returned whe
 
 
 ## Publishing a folder listing
-To publish the contents of a folder, add it to the configuration like you would with a regular file.
+To publish the contents of a folder, add it to the configuration like you would with a regular file. Files beginning with a dot will not be displayed.
 
-If you make all folders and files in this directory available, add `"recursive": true` to the setting.
+If you make all folders and files in this directory available, add `"recursive": true` to the setting. Although they are not displayed in the listing, files beginning with a dot are also made available through this.
 
 ```json
 {
@@ -85,6 +85,8 @@ To exclude certain files or subfolders from the directory, place them in an `exc
     "directory/secret/still-available.file": {}
 }
 ```
+
+To publish the contents of the root folder, use a dot as the key: `".": {}`. If you set the `recursive` rule, I highly recommend adding an exclusion for the configuration file, as publinx does not do this automatically.
 
 ## Password protection
 The most simple way to protect a file with a password is to require a GET parameter. This can be achieved by adding a parameter `password` to the file's entry.
@@ -133,3 +135,7 @@ To create a link that expires after a certain time, add a parameter `expires` wi
     }
 }
 ```
+
+## Comments
+
+All other entries in the configuration file are ignored. To avoid possible future
