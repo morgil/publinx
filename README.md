@@ -3,11 +3,12 @@ A simple tool to make files available in an otherwise non-public directory. Inte
 
 I made this because I [synchronize](https://www.syncthing.net/) my data to my server and sometimes want other people to access certain files. With this tool, I can selectively give out access by simply editing a JSON file in my synchronized directory.
 
-publinx can serve files and simple directory listings under their original or rewritten paths, can make links expire after a certain date and implements password protection via GET parameters or HTTP authentication.
+publinx can serve files and simple directory listings under their original or rewritten paths, can make links expire after a certain date and implements password protection via GET parameters or HTTP authentication. Although there should be no obvious security vulnerabilities in the code, I do not recommend using this in a situation where security is critical.
 
 This project is licensed under GPLv3, so please create beautiful things with it.
 
 publinx was mostly created at the very awesome [Gulaschprogrammiernacht](https://gulas.ch/).
+
 
 # Table of contents
 1. [Installation](#installation)
