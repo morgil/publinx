@@ -56,6 +56,9 @@ def parse_request(requested_path):
     with open(os.path.join(app.config['BASEDIR'], app.config['LINKFILE'])) as fp:
         filelist = json.load(fp)
 
+    # Normalize requested path to avoid directory traversal attacks
+    requested_path = os.path.normpath(requested_path)
+
     if len(requested_path) > 0 and requested_path[-1] == '/':
         requested_path = requested_path[:-1]
 
@@ -111,9 +114,6 @@ def parse_request(requested_path):
     else:
         filename = descriptor
 
-    if is_illegal_directory_traversal(filename, descriptor):
-        return Status.ContainsIllegalDirectoryTraversal, filename
-
     if not file_or_directory_exists(filename):
         return Status.NotFoundOnServer, filename
 
@@ -132,6 +132,7 @@ def get_most_accurate_descriptor(name, directory_list):
     if name in directory_list:
         return name, ''
 
+    # os.path.commonprefix is not reliable as we could match a more specific key in directory_list than name
     head, tailpart = os.path.split(name)
     tail = tailpart
     while head != '':
@@ -146,12 +147,6 @@ def get_most_accurate_descriptor(name, directory_list):
 def file_or_directory_exists(location):
     """ Returns whether the file at location exists. """
     return os.path.exists(os.path.join(app.config['BASEDIR'], location))
-
-
-def is_illegal_directory_traversal(filename, path):
-    absolute_file = os.path.abspath(os.path.join(app.config['BASEDIR'], filename))
-    absolute_path = os.path.abspath(os.path.join(app.config['BASEDIR'], path))
-    return os.path.commonprefix([absolute_file, absolute_path]) != absolute_path
 
 
 def send_file_or_directory(location, original_request):
