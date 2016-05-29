@@ -4,8 +4,6 @@ A simple tool to make files available in an otherwise non-public directory. Work
 I made this because I [synchronize](https://www.syncthing.net/) my data to my server and sometimes want other people to access certain files.
  With this tool, I can selectively give out access to files by simply editing a JSON file in my synchronized directory.
 
-Right now, it is still incomplete and should not be considered secure.
-
 This project is licensed under GPLv3, so please create beautiful things with it.
 
 # Table of contents
@@ -34,6 +32,7 @@ git clone git@github.com:morgil/publinx.git
 cd publinx
 
 pip install flask
+pip install python-dateutil
 
 sudo apt-get install nginx uwsgi uwsgi-plugin-python
 ```
@@ -101,6 +100,7 @@ All configuration takes place in the config file, which is basic JSON syntax.
 
 Note that there are no checks for valid but stupid configurations. If you want to make your home directory or your config file publicly available, I won't stop you.
 
+
 ## Simple file output
 To simply return a file with the same path as it has in your directory, add it as a key to the config file:
 ```json
@@ -112,6 +112,7 @@ This file can now be accessed via `http://www.example.com/simple-file.ext`.
 
 publinx also supports subfolders, so you can also add `folder/file.ext` to the config to return this file.
 
+
 ## Returning a file on a different path
 If you want to return a file from a different URL, use the public filename as the key and add a `path` parameter to the values:
 ```json
@@ -122,6 +123,7 @@ If you want to return a file from a different URL, use the public filename as th
 }
 ```
 Now, the file at `folder/hidden-filename.ext` will be returned when `http://www.example.com/public-filename.ext` is requested.
+
 
 ## Publishing a folder listing
 To publish the contents of a folder, add it to the configuration like you would with a regular file.
@@ -148,6 +150,7 @@ To exclude certain files or subfolders from the directory, place them in an `exc
     "directory/secret/still-available.file": {}
 }
 ```
+
 ## Password protection
 The most simple way to protect a file with a password is to require a GET parameter. This can be achieved by adding a parameter `password` to the file's entry.
 ```json
@@ -157,7 +160,26 @@ The most simple way to protect a file with a password is to require a GET parame
     }
 }
 ```
-Now, you can only access this file via http://www.example.com/secret.file?password=hunter2. If the wrong password or no password is given, it acts as if the file does not exist and returns a 404 error to avoid obviously leaking information.
+Now you can only access this file via http://www.example.com/secret.file?password=hunter2. If the wrong password or no password is given, it acts as if the file does not exist and returns a 404 error to avoid obviously leaking information.
+
+
+## HTTP Authentication
+A more advanced way of protecting your files is via HTTP authentication. publinx supports plain-text and hashed passwords. For hashing, hashlib.pbkdf2_hmac with sha256 is used. The other parameters can be set in the configuration.
+```json
+{
+    "passwordprotected.file": {
+        "auth": {
+            "plaintextuser": "plaintextpassword",
+            "hasheduser": {
+                "hash": "3767f805a4558892f16fa0e3809043cc59170e5aac22534db508888bb11cb0cf",
+                "salt": "mysalt",
+                "rounds": 100000
+            }
+        }
+    }
+}
+```
+The password protected file can now be accessed via HTTP authentication with `plaintextuser`/`plaintextpassword` or `hasheduser`/`password`.
 
 ## Expiring links
 

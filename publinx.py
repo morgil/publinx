@@ -1,9 +1,10 @@
 import datetime
+import hashlib, binascii
 import json
 import os
 
 import dateutil.parser
-from flask import Flask, send_file, abort, render_template, request
+from flask import Flask, send_file, abort, render_template, request, Response
 
 import config
 
@@ -21,6 +22,9 @@ def index(requested_path):
     :return: The sent file
     """
     filename = get_real_path(requested_path)
+
+    if type(filename) is Response:
+        return filename
 
     if filename is None:
         abort(404)
@@ -63,6 +67,29 @@ def get_real_path(requested_path):
             if excluded is not None:
                 return None
 
+    if "auth" in requested_entry:
+        authenticated = False
+        auth = request.authorization
+        if auth and auth.username in requested_entry["auth"]:
+            if isinstance(requested_entry["auth"][auth.username], str):
+                authenticated = requested_entry["auth"][auth.username] == auth.password
+            else:
+                authenticated = requested_entry["auth"][auth.username]["hash"] == binascii.hexlify(hashlib.pbkdf2_hmac(
+                    'sha256',
+                    auth.password.encode("utf-8"),
+                    requested_entry["auth"][auth.username]["salt"].encode("utf-8"),
+                    requested_entry["auth"][auth.username]["rounds"],
+                )).decode()
+        if not (auth and auth.username in requested_entry["auth"] and authenticated):
+            return Response('Please log in with the proper credentials', 401,
+                            {'WWW-Authenticate': 'Basic realm="Please enter your user name and password."'})
+
+    # Is the file password protected? Return 404 to avoid leaking information on password protected files.
+    # The information leak is probably vulnerable to timing side-channel attacks, but if you have to worry about that,
+    # you shouldn't use this software.
+    if "password" in requested_entry and request.args.get('password') != requested_entry['password']:
+        return None
+
     # Check if the request maps to a different directory
     if "path" in requested_entry:
         filename = os.path.join(requested_entry["path"], rest)
@@ -70,12 +97,6 @@ def get_real_path(requested_path):
         filename = os.path.join(descriptor, rest)
     else:
         filename = descriptor
-
-    # Is the file password protected? Return 404 to avoid leaking information on password protected files.
-    # The information leak is probably vulnerable to timing side-channel attacks, but if you have to worry about that,
-    # you shouldn't use this software.
-    if "password" in requested_entry and request.args.get('password') != requested_entry['password']:
-        return None
 
     return filename
 

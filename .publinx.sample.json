@@ -18,6 +18,16 @@
     "secret.file": {
         "password": "hunter2"
     },
+    "passwordprotected.file": {
+        "auth": {
+            "plaintextuser": "plaintextpassword",
+            "hasheduser": {
+                "hash": "3767f805a4558892f16fa0e3809043cc59170e5aac22534db508888bb11cb0cf",
+                "salt": "mysalt",
+                "rounds": 100000
+            }
+        }
+    },
     "datedfile": {
         "expires": "2016-05-29T01:34:00+0200"
     }
