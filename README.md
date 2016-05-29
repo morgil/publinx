@@ -14,6 +14,7 @@ publinx was mostly created at the very awesome [Gulaschprogrammiernacht](https:/
 1. [Installation](#installation)
 2. [Configuration](#configuration)
 3. [Creating public links](#creating-public-links)
+4. [TODO](#todo)
 
 # Installation
 publinx is a uWSGI "app".
@@ -138,4 +139,12 @@ To create a link that expires after a certain time, add a parameter `expires` wi
 
 ## Comments
 
-All other entries in the configuration file are ignored. To avoid possible future
+All other entries in the configuration file are ignored. To avoid possible future conflicts, I recommend adding comments with a `"_comment"` key.
+
+
+# TODO
+
+Ideas for the future that might be implemented when I need them. More ideas or implementations are welcome.
+
+* Wildcard matching
+* Access log
