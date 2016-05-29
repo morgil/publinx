@@ -22,6 +22,7 @@ class Status(Enum):
     Expired = 4
     Excluded = 5
     NoPasswordProvided = 6
+    ContainsIllegalDirectoryTraversal = 7
 
 
 @app.route('/', defaults={'requested_path': ''})
@@ -36,7 +37,7 @@ def index(requested_path):
     status, filename = parse_request(requested_path)
 
     # Same response for all these status: 404. They might still be useful for logging purposes one day.
-    if status in [Status.NotFound, Status.NotFoundOnServer, Status.Expired, Status.Excluded, Status.NoPasswordProvided]:
+    if status not in [Status.OK, Status.Unauthorized]:
         abort(404)
 
     if status is Status.Unauthorized:
@@ -110,6 +111,9 @@ def parse_request(requested_path):
     else:
         filename = descriptor
 
+    if is_illegal_directory_traversal(filename, descriptor):
+        return Status.ContainsIllegalDirectoryTraversal, filename
+
     if not file_or_directory_exists(filename):
         return Status.NotFoundOnServer, filename
 
@@ -142,6 +146,12 @@ def get_most_accurate_descriptor(name, directory_list):
 def file_or_directory_exists(location):
     """ Returns whether the file at location exists. """
     return os.path.exists(os.path.join(app.config['BASEDIR'], location))
+
+
+def is_illegal_directory_traversal(filename, path):
+    absolute_file = os.path.abspath(os.path.join(app.config['BASEDIR'], filename))
+    absolute_path = os.path.abspath(os.path.join(app.config['BASEDIR'], path))
+    return os.path.commonprefix([absolute_file, absolute_path]) != absolute_path
 
 
 def send_file_or_directory(location, original_request):
