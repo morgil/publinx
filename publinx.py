@@ -1,19 +1,31 @@
 import datetime
-import hashlib, binascii
+from enum import Enum
+import hashlib
+import binascii
 import json
 import os
 
 import dateutil.parser
 from flask import Flask, send_file, abort, render_template, request, Response
 
-import config
 
-publinx = Flask(__name__)
-publinx.debug = True
+app = Flask(__name__)
+app.config.from_pyfile('config.py')
+app.debug = True
 
 
-@publinx.route('/', defaults={'request': ''})
-@publinx.route('/<path:requested_path>')
+class Status(Enum):
+    OK = 0
+    NotFound = 1
+    NotFoundOnServer = 2
+    Unauthorized = 3
+    Expired = 4
+    Excluded = 5
+    NoPasswordProvided = 6
+
+
+@app.route('/', defaults={'requested_path': ''})
+@app.route('/<path:requested_path>')
 def index(requested_path):
     """
     Entry point. Tries to resolve the requested file's real path, sends 404 if it's not available or gives control to
@@ -21,25 +33,26 @@ def index(requested_path):
     :param requested_path: Request path, provided by Flask
     :return: The sent file
     """
-    filename = get_real_path(requested_path)
+    status, filename = parse_request(requested_path)
 
-    if type(filename) is Response:
-        return filename
-
-    if filename is None:
+    # Same response for all these status: 404. They might still be useful for logging purposes one day.
+    if status in [Status.NotFound, Status.NotFoundOnServer, Status.Expired, Status.Excluded, Status.NoPasswordProvided]:
         abort(404)
+
+    if status is Status.Unauthorized:
+        return Response('Unauthorized', 401, {'WWW-Authenticate': 'Basic realm="Enter credentials to access the file"'})
 
     return send_file_or_directory(filename, requested_path)
 
 
-def get_real_path(requested_path):
+def parse_request(requested_path):
     """
     Parses the config file and returns the server-side path for the requested file.
     If the file can't or may not be accessed with this request, it returns None.
     :param requested_path: The request data (without a leading slash)
     :return: The server-side path
     """
-    with open(os.path.join(config.basedir, config.configfile)) as fp:
+    with open(os.path.join(app.config['BASEDIR'], app.config['LINKFILE'])) as fp:
         filelist = json.load(fp)
 
     if len(requested_path) > 0 and requested_path[-1] == '/':
@@ -48,15 +61,14 @@ def get_real_path(requested_path):
     descriptor, rest = get_most_accurate_descriptor(requested_path, filelist)
 
     if descriptor is None:
-        return None
+        return Status.NotFound, None
 
     requested_entry = filelist[descriptor]
 
     if "expires" in requested_entry:
         expires = dateutil.parser.parse(requested_entry["expires"])
-        print(expires)
         if expires < datetime.datetime.now(tz=expires.tzinfo):
-            return None
+            return Status.Expired, descriptor
 
     # If rest is not empty, there is an entry containing a part of the request. Let's check if requests to its
     # subfolders are allowed...
@@ -65,7 +77,7 @@ def get_real_path(requested_path):
         if "exclude" in requested_entry:
             excluded, _ = get_most_accurate_descriptor(rest, requested_entry["exclude"])
             if excluded is not None:
-                return None
+                return Status.Excluded, descriptor
 
     if "auth" in requested_entry:
         authenticated = False
@@ -81,14 +93,11 @@ def get_real_path(requested_path):
                     requested_entry["auth"][auth.username]["rounds"],
                 )).decode()
         if not (auth and auth.username in requested_entry["auth"] and authenticated):
-            return Response('Please log in with the proper credentials', 401,
-                            {'WWW-Authenticate': 'Basic realm="Please enter your user name and password."'})
+            return Status.Unauthorized, descriptor
 
-    # Is the file password protected? Return 404 to avoid leaking information on password protected files.
-    # The information leak is probably vulnerable to timing side-channel attacks, but if you have to worry about that,
-    # you shouldn't use this software.
+    # Is the file password protected?
     if "password" in requested_entry and request.args.get('password') != requested_entry['password']:
-        return None
+        return Status.NoPasswordProvided, descriptor
 
     # Check if the request maps to a different directory
     if "path" in requested_entry:
@@ -101,7 +110,10 @@ def get_real_path(requested_path):
     else:
         filename = descriptor
 
-    return filename
+    if not file_or_directory_exists(filename):
+        return Status.NotFoundOnServer, filename
+
+    return Status.OK, filename
 
 
 def get_most_accurate_descriptor(name, directory_list):
@@ -127,17 +139,20 @@ def get_most_accurate_descriptor(name, directory_list):
     return None, None
 
 
+def file_or_directory_exists(location):
+    """ Returns whether the file at location exists. """
+    return os.path.exists(os.path.join(app.config['BASEDIR'], location))
+
+
 def send_file_or_directory(location, original_request):
     """
     Checks if the request points to a file or a directory and sends either the file or a directory listing.
-    Raises IOError if the requested file does not exist (which means that the configuration file has an error)
+    It expects the location to exist (has been checked in parse_request)
     :param location: The location
     :param original_request: The requested url (for HTML links)
     :return: Flask's send_file or send_directory
     """
-    full = os.path.join(config.basedir, location)
-    if not os.path.exists(full):
-        raise IOError("Target file or directory does not exist: %s", full)
+    full = os.path.join(app.config['BASEDIR'], location)
     if os.path.isdir(full):
         return send_directory(full, original_request)
     if os.path.isfile(full):
@@ -156,7 +171,11 @@ def send_directory(local_path, remote_url):
     contents = listdir(local_path)
     if len(remote_url) == 0 or remote_url[-1] != "/":
         remote_url += "/"
-    return render_template('directory.html', directory=remote_url, contents=contents)
+    if request.args.get('password'):
+        return render_template('directory.html', directory=remote_url, contents=contents,
+                               password=request.args.get('password'))
+    else:
+        return render_template('directory.html', directory=remote_url, contents=contents)
 
 
 def listdir(path):

@@ -6,103 +6,36 @@ I made this because I [synchronize](https://www.syncthing.net/) my data to my se
 
 This project is licensed under GPLv3, so please create beautiful things with it.
 
+publinx was mostly created at the very awesome [Gulaschprogrammiernacht](https://gulas.ch/).
+
 # Table of contents
-1. [Installation (short)](#installation-short)
-2. [Installation](#installation)
-3. [Configuration](#configuration)
-4. [Creating public links](#creating-public-links)
-
-# Installation (short)
-publinx is a uWSGI "app". Install and configure uWSGI as you like it. Install the Python modules Flask and dateutil. Point uWSGI to `module=publinx` and `callable=publinx`.
-
-Copy the config.sample.py to config.py and set the variables. The `configfile` is expected to be found inside the `basedir`.
-
-Look at `.publinx.sample.json` or the configuration section in this file for how to create public links.
+1. [Installation](#installation)
+2. [Configuration](#configuration)
+3. [Creating public links](#creating-public-links)
 
 # Installation
+publinx is a uWSGI "app".
 
-These installation instructions have been adapted from [http://www.markjberger.com/flask-with-virtualenv-uwsgi-nginx/](http://www.markjberger.com/flask-with-virtualenv-uwsgi-nginx/) and should be followed with caution. You should rather read the official installation instructions and adapt them for your needs.
+For the installation of uWSGI, consult a guide you trust. I have used [http://www.markjberger.com/flask-with-virtualenv-uwsgi-nginx/](http://www.markjberger.com/flask-with-virtualenv-uwsgi-nginx/).
 
-Install python and flask.
-```
-sudo apt-get install build-essential python-dev python-pip
+Additionally, install the Python module python-dateutil.
 
-cd /my/directory
-git clone git@github.com:morgil/publinx.git
-cd publinx
-
-pip install flask
-pip install python-dateutil
-
-sudo apt-get install nginx uwsgi uwsgi-plugin-python
-```
-
-Prepare a file socket (or use a TCP socket if you like):
-```
-cd /tmp/
-touch publinx.sock
-sudo chown www-data publinx.sock
-```
-Configure nginx:
-```
-cd /etc/nginx/sites-available
-touch publinx
-```
-Put the following into publinx:
-```
-server {
-    listen 80;
-    server_tokens off;
-    server_name www.example.com;
-
-     location / {
-         include uwsgi_params;
-         uwsgi_pass unix:/tmp/publinx.sock;
-     }
-}
-```
-And link the file:
-```
-cd ../sites-enabled/
-sudo ln -s ../sites-available/publinx publinx
-```
-Configure uWSGI:
-```
-cd /etc/uwsgi/apps-available
-touch publinx.ini
-```
-Put the following into publinx.ini:
-```
-[uwsgi]
-vhost = true
-socket = /tmp/publinx.sock
-chdir = /my/directory/publinx
-module = publinx
-callable = publinx
-```
-Link the file and reload the config:
-```
-cd ../apps-enabled/
-sudo ln -s ../apps-available/publinx.ini publinx.ini
-
-sudo service nginx restart
-sudo service uwsgi restart
-```
+Point uWSGI to `module=publinx` and `callable=app`.
 
 
-# Configuration:
-Copy config.sample.py to config.py, change basedir to your data directory and, if needed, change the name of the config file.
+# Configuration
+Copy config.sample.py to config.py, change BASEDIR to your data directory and, if needed, change the name of the config file.
 
 
 # Creating public links
 
-All configuration takes place in the config file, which is basic JSON syntax.
+All configuration takes place in the link file `.publinx.json`, which contains basic JSON syntax.
 
-Note that there are no checks for valid but stupid configurations. If you want to make your home directory or your config file publicly available, I won't stop you.
+Note that there are no checks for valid but stupid configurations. If you want to make your home directory or your link file publicly available, I won't stop you.
 
 
 ## Simple file output
-To simply return a file with the same path as it has in your directory, add it as a key to the config file:
+To simply return a file with the same path as it has in your directory, add it as a key to the link file:
 ```json
 {
     "simple-file.ext": {}
@@ -110,10 +43,10 @@ To simply return a file with the same path as it has in your directory, add it a
 ```
 This file can now be accessed via `http://www.example.com/simple-file.ext`.
 
-publinx also supports subfolders, so you can also add `folder/file.ext` to the config to return this file.
+publinx also supports files in subfolders, you can add `folder/file.ext` to return this file.
 
 
-## Returning a file on a different path
+## URL Rewriting
 If you want to return a file from a different URL, use the public filename as the key and add a `path` parameter to the values:
 ```json
 {
@@ -122,7 +55,7 @@ If you want to return a file from a different URL, use the public filename as th
     }
 }
 ```
-Now, the file at `folder/hidden-filename.ext` will be returned when `http://www.example.com/public-filename.ext` is requested.
+Now, the file at `folder/hidden-filename.ext` will transparently be returned when `http://www.example.com/public-filename.ext` is requested. This also works for directory listings.
 
 
 ## Publishing a folder listing
@@ -164,7 +97,7 @@ Now you can only access this file via http://www.example.com/secret.file?passwor
 
 
 ## HTTP Authentication
-A more advanced way of protecting your files is via HTTP authentication. publinx supports plain-text and hashed passwords. For hashing, hashlib.pbkdf2_hmac with sha256 is used. The other parameters can be set in the configuration.
+A more advanced way of protecting your files is via HTTP authentication. publinx supports plain-text and hashed passwords. For hashing, Python's [hashlib.pbkdf2_hmac](https://docs.python.org/3/library/hashlib.html#hashlib.pbkdf2_hmac) with sha256 is used. The other parameters can be set in the configuration.
 ```json
 {
     "passwordprotected.file": {
@@ -180,6 +113,13 @@ A more advanced way of protecting your files is via HTTP authentication. publinx
 }
 ```
 The password protected file can now be accessed via HTTP authentication with `plaintextuser`/`plaintextpassword` or `hasheduser`/`password`.
+
+To generate a password hash, use Python code similar to these lines:
+```python
+import hashlib, binascii
+dk = hashlib.pbkdf2_hmac('sha256', b'password', b'mysalt', 100000)
+binascii.hexlify(dk)
+```
 
 ## Expiring links
 
