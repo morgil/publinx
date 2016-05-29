@@ -154,6 +154,8 @@ def send_directory(local_path, remote_url):
     if not os.path.isdir(local_path):
         raise IOError("This is not a directory.")
     contents = listdir(local_path)
+    if len(remote_url) == 0 or remote_url[-1] != "/":
+        remote_url += "/"
     return render_template('directory.html', directory=remote_url, contents=contents)
 
 
