@@ -19,7 +19,7 @@ publinx was mostly created at the very awesome [Gulaschprogrammiernacht](https:/
 # Installation
 publinx is a uWSGI "app".
 
-For the installation of uWSGI and Python 3, consult a guide you trust.
+For the installation of uWSGI and Python 3 (at least 3.4), consult a guide you trust.
 
 Additionally, install the Python module python-dateutil.
 
