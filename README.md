@@ -102,16 +102,18 @@ Now you can only access this file via http://www.example.com/secret.file?passwor
 
 
 ## HTTP Authentication
-A more advanced way of protecting your files is via HTTP authentication. publinx supports plain-text and hashed passwords. For hashing, Python's [hashlib.pbkdf2_hmac](https://docs.python.org/3/library/hashlib.html#hashlib.pbkdf2_hmac) with sha256 is used. The other parameters can be set in the configuration.
+A more advanced way of protecting your files is via HTTP authentication. publinx supports plain-text and hashed passwords using `crypt(3)`.
 ```json
 {
     "passwordprotected.file": {
         "auth": {
-            "plaintextuser": "plaintextpassword",
+            "plaintextuser": {
+                "password": "plaintextpassword",
+                "method": "plain"
+            },
             "hasheduser": {
-                "hash": "3767f805a4558892f16fa0e3809043cc59170e5aac22534db508888bb11cb0cf",
-                "salt": "mysalt",
-                "rounds": 100000
+                "password": "$5$3FdNNXpxYY$2PTBfx8/Tug1Hy5O8wC45WInwE.XareJbLB4c.sPW60",
+                "method": "crypt"
             }
         }
     }
@@ -119,12 +121,7 @@ A more advanced way of protecting your files is via HTTP authentication. publinx
 ```
 The password protected file can now be accessed via HTTP authentication with `plaintextuser`/`plaintextpassword` or `hasheduser`/`password`.
 
-To generate a password hash, use Python code similar to these lines:
-```python
-import hashlib, binascii
-dk = hashlib.pbkdf2_hmac('sha256', b'password', b'mysalt', 100000)
-binascii.hexlify(dk)
-```
+To generate a password hash, you can use a `crypt(3)` implementation of your choice, like `mkpasswd`.
 
 ## Expiring links
 

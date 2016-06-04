@@ -1,7 +1,7 @@
 import datetime
 from enum import Enum
-import hashlib
-import binascii
+import hmac
+import crypt
 import json
 import os
 
@@ -85,15 +85,13 @@ def parse_request(requested_path):
         authenticated = False
         auth = request.authorization
         if auth and auth.username in requested_entry["auth"]:
-            if isinstance(requested_entry["auth"][auth.username], str):
-                authenticated = requested_entry["auth"][auth.username] == auth.password
+            if requested_entry["auth"][auth.username]["method"] == "plain":
+                authenticated = requested_entry["auth"][auth.username]["password"] == auth.password
             else:
-                authenticated = requested_entry["auth"][auth.username]["hash"] == binascii.hexlify(hashlib.pbkdf2_hmac(
-                    'sha256',
-                    auth.password.encode("utf-8"),
-                    requested_entry["auth"][auth.username]["salt"].encode("utf-8"),
-                    requested_entry["auth"][auth.username]["rounds"],
-                )).decode()
+                authenticated = hmac.compare_digest(crypt.crypt(
+                    auth.password,
+                    requested_entry["auth"][auth.username]["password"]
+                ), requested_entry["auth"][auth.username]["password"])
         if not (auth and auth.username in requested_entry["auth"] and authenticated):
             return Status.Unauthorized, descriptor
 
