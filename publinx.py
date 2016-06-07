@@ -7,10 +7,15 @@ import os
 
 import dateutil.parser
 from flask import Flask, send_file, abort, render_template, request, Response
+import uwsgi
 
 
 app = Flask(__name__)
-app.config.from_pyfile('config.py')
+if 'debug' in uwsgi.opt and uwsgi.opt['debug'] == b'True':
+    app.debug = True
+
+BASEDIR = uwsgi.opt['basedir'].decode()
+LINKFILE = uwsgi.opt['linkfile'].decode()
 
 
 class Status(Enum):
@@ -46,12 +51,12 @@ def index(requested_path):
 
 def parse_request(requested_path):
     """
-    Parses the config file and returns the server-side path for the requested file.
+    Returns the server-side path for the requested file.
     If the file can't or may not be accessed with this request, it returns None.
     :param requested_path: The request data (without a leading slash)
     :return: A Status value and the server-side path, if existing
     """
-    with open(os.path.join(app.config['BASEDIR'], app.config['LINKFILE'])) as fp:
+    with open(LINKFILE) as fp:
         filelist = json.load(fp)
 
     # Normalize requested path to avoid directory traversal attacks
@@ -142,7 +147,7 @@ def get_most_accurate_descriptor(name, directory_list):
 
 def file_or_directory_exists(location):
     """ Returns whether the file at location exists. """
-    return os.path.exists(os.path.join(app.config['BASEDIR'], location))
+    return os.path.exists(os.path.join(BASEDIR, location))
 
 
 def send_file_or_directory(location, original_request):
@@ -153,7 +158,7 @@ def send_file_or_directory(location, original_request):
     :param original_request: The requested url (for HTML links)
     :return: Flask's send_file or send_directory
     """
-    full = os.path.join(app.config['BASEDIR'], location)
+    full = os.path.join(BASEDIR, location)
     if os.path.isdir(full):
         return send_directory(full, original_request)
     if os.path.isfile(full):

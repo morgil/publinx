@@ -21,18 +21,20 @@ publinx is a uWSGI "app".
 
 For the installation of uWSGI and Python 3 (at least 3.4), consult a guide you trust.
 
-Additionally, install the Python module python-dateutil.
-
-Point uWSGI to `module=publinx` and `callable=app`.
+Additionally, install the Python modules python-dateutil, flask and uwsgi (if they are not installed yet).
 
 
 # Configuration
-Copy config.sample.py to config.py, change BASEDIR to your data directory and, if needed, change the name of the config file.
+
+publinx needs the configuration optinos `basedir` and `linkfile` which can be set in the ini file or as command line parameters, depending on how you load it.
+
+A sample configuration file is attached as `publinx.sample.ini`. Configure `socket`, `chdir` and `virtualenv` according to your installation.
+Set `basedir` to your data directory and `linkfile` to the path to your configuration file.
 
 
 # Creating public links
 
-All configuration takes place in the link file `.publinx.json`, which contains basic JSON syntax.
+All public link configuration takes place in the link file `.publinx.json`, which contains basic JSON syntax.
 
 Be careful as there are no checks for valid but stupid configurations. If you want to make your home directory or your link file publicly available, I won't stop you.
 
