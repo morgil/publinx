@@ -211,7 +211,7 @@ def listdir(path):
             continue
         if os.path.isdir(os.path.join(path, entry)):
             folderlist.append({
-                "name": entry,
+                "name": entry + "/",
                 "size": '',
                 "timestamp": datetime.datetime.fromtimestamp(round(os.path.getmtime(os.path.join(path, entry))))
             })
