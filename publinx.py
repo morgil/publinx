@@ -11,11 +11,15 @@ import uwsgi
 
 
 app = Flask(__name__)
+
+# Load ini configuration
 if 'debug' in uwsgi.opt and uwsgi.opt['debug'] == b'True':
     app.debug = True
 
 BASEDIR = uwsgi.opt['basedir'].decode()
 LINKFILE = uwsgi.opt['linkfile'].decode()
+
+index_files = {"index.html", "index.htm"}
 
 
 class Status(Enum):
@@ -160,7 +164,13 @@ def send_file_or_directory(location, original_request):
     """
     full = os.path.join(BASEDIR, location)
     if os.path.isdir(full):
-        return send_directory(full, original_request)
+        contents = os.listdir(full)
+        if len(set(contents) & index_files) > 0:
+            for candidate in contents:
+                if candidate in index_files:
+                    return send_file(os.path.join(full, candidate))
+        else:
+            return send_directory(full, original_request)
     if os.path.isfile(full):
         return send_file(full)
 

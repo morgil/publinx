@@ -12,7 +12,7 @@
     </tr>
 {% for entry in contents %}
     <tr>
-        <td><a href="/{{directory}}{{ entry.name }}{% if password is defined%}?password={{password}}{% endif %}">{{ entry.name }}</a></td><td>{{ entry.timestamp }}</td><td>{{ entry.size }}</td>
+        <td><a href="/{{directory}}/{{ entry.name }}{% if password is defined%}?password={{password}}{% endif %}">{{ entry.name }}</a></td><td>{{ entry.timestamp }}</td><td>{{ entry.size }}</td>
     </tr>
 {% endfor %}
 </table>
