@@ -1,23 +1,22 @@
-import datetime
-from enum import Enum
-import hmac
 import crypt
+import datetime
+import hmac
 import json
 import os
+from enum import Enum
 
 import dateutil.parser
-from flask import Flask, send_file, abort, render_template, request, Response
 import uwsgi
-
+from flask import Flask, Response, abort, render_template, request, send_file
 
 app = Flask(__name__)
 
 # Load ini configuration
-if 'debug' in uwsgi.opt and uwsgi.opt['debug'] == b'True':
+if "debug" in uwsgi.opt and uwsgi.opt["debug"] == b"True":
     app.debug = True
 
-BASEDIR = uwsgi.opt['basedir'].decode()
-LINKFILE = uwsgi.opt['linkfile'].decode()
+BASEDIR = uwsgi.opt["basedir"].decode()
+LINKFILE = uwsgi.opt["linkfile"].decode()
 
 index_files = {"index.html", "index.htm"}
 
@@ -32,8 +31,8 @@ class Status(Enum):
     NoPasswordProvided = 6
 
 
-@app.route('/', defaults={'requested_path': ''})
-@app.route('/<path:requested_path>')
+@app.route("/", defaults={"requested_path": ""})
+@app.route("/<path:requested_path>")
 def index(requested_path):
     """
     Entry point. Tries to resolve the requested file's real path, sends 404 if it's not available or gives control to
@@ -48,7 +47,11 @@ def index(requested_path):
         abort(404)
 
     if status is Status.Unauthorized:
-        return Response('Unauthorized', 401, {'WWW-Authenticate': 'Basic realm="Enter credentials to access the file"'})
+        return Response(
+            "Unauthorized",
+            401,
+            {"WWW-Authenticate": 'Basic realm="Enter credentials to access the file"'},
+        )
 
     return send_file_or_directory(filename, requested_path)
 
@@ -66,7 +69,7 @@ def parse_request(requested_path):
     # Normalize requested path to avoid directory traversal attacks
     requested_path = os.path.normpath(requested_path)
 
-    if len(requested_path) > 0 and requested_path[-1] == '/':
+    if len(requested_path) > 0 and requested_path[-1] == "/":
         requested_path = requested_path[:-1]
 
     descriptor, rest = get_most_accurate_descriptor(requested_path, filelist)
@@ -83,7 +86,7 @@ def parse_request(requested_path):
 
     # If rest is not empty, there is an entry containing a part of the request. Let's check if requests to its
     # subfolders are allowed...
-    if rest != '' and "recursive" in requested_entry and requested_entry["recursive"]:
+    if rest != "" and "recursive" in requested_entry and requested_entry["recursive"]:
         # ... and if there is an exclusion list, if the request is excluded.
         if "exclude" in requested_entry:
             excluded, _ = get_most_accurate_descriptor(rest, requested_entry["exclude"])
@@ -95,26 +98,34 @@ def parse_request(requested_path):
         auth = request.authorization
         if auth and auth.username in requested_entry["auth"]:
             if requested_entry["auth"][auth.username]["method"] == "plain":
-                authenticated = requested_entry["auth"][auth.username]["password"] == auth.password
+                authenticated = (
+                    requested_entry["auth"][auth.username]["password"] == auth.password
+                )
             else:
-                authenticated = hmac.compare_digest(crypt.crypt(
-                    auth.password,
-                    requested_entry["auth"][auth.username]["password"]
-                ), requested_entry["auth"][auth.username]["password"])
+                authenticated = hmac.compare_digest(
+                    crypt.crypt(
+                        auth.password,
+                        requested_entry["auth"][auth.username]["password"],
+                    ),
+                    requested_entry["auth"][auth.username]["password"],
+                )
         if not (auth and auth.username in requested_entry["auth"] and authenticated):
             return Status.Unauthorized, descriptor
 
     # Is the file password protected?
-    if "password" in requested_entry and request.args.get('password') != requested_entry['password']:
+    if (
+        "password" in requested_entry
+        and request.args.get("password") != requested_entry["password"]
+    ):
         return Status.NoPasswordProvided, descriptor
 
     # Check if the request maps to a different directory
     if "path" in requested_entry:
-        if rest != '':
+        if rest != "":
             filename = os.path.join(requested_entry["path"], rest)
         else:
             filename = requested_entry["path"]
-    elif rest != '':
+    elif rest != "":
         filename = os.path.join(descriptor, rest)
     else:
         filename = descriptor
@@ -135,12 +146,12 @@ def get_most_accurate_descriptor(name, directory_list):
     :return: The deepest common directory/filename between name and directory_list's entries.
     """
     if name in directory_list:
-        return name, ''
+        return name, ""
 
     # os.path.commonprefix is not reliable as we could match a more specific key in directory_list than name
     head, tailpart = os.path.split(name)
     tail = tailpart
-    while head != '':
+    while head != "":
         if head in directory_list:
             return head, tail
         head, tailpart = os.path.split(head)
@@ -150,7 +161,7 @@ def get_most_accurate_descriptor(name, directory_list):
 
 
 def file_or_directory_exists(location):
-    """ Returns whether the file at location exists. """
+    """Returns whether the file at location exists."""
     return os.path.exists(os.path.join(BASEDIR, location))
 
 
@@ -185,11 +196,17 @@ def send_directory(local_path, remote_url):
     if not os.path.isdir(local_path):
         raise IOError("This is not a directory.")
     contents = listdir(local_path)
-    if request.args.get('password'):
-        return render_template('directory.html', directory=remote_url, contents=contents,
-                               password=request.args.get('password'))
+    if request.args.get("password"):
+        return render_template(
+            "directory.html",
+            directory=remote_url,
+            contents=contents,
+            password=request.args.get("password"),
+        )
     else:
-        return render_template('directory.html', directory=remote_url, contents=contents)
+        return render_template(
+            "directory.html", directory=remote_url, contents=contents
+        )
 
 
 def listdir(path):
@@ -203,35 +220,43 @@ def listdir(path):
     folderlist = []
     filelist = []
 
-    def sizeof_fmt(num, suffix='B'):
+    def sizeof_fmt(num, suffix="B"):
         """
         Returns a human-readable representation of a file size. Code snippet from http://stackoverflow.com/a/1094933
         :param num: The file size
         :param suffix: The suffix
         :return:
         """
-        for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+        for unit in ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"]:
             if abs(num) < 1024.0:
                 return "%3.1f%s%s" % (num, unit, suffix)
             num /= 1024.0
-        return "%.1f%s%s" % (num, 'Yi', suffix)
+        return "%.1f%s%s" % (num, "Yi", suffix)
 
     for entry in contents:
-        if entry[0] == '.':
+        if entry[0] == ".":
             continue
         if os.path.isdir(os.path.join(path, entry)):
-            folderlist.append({
-                "name": entry + "/",
-                "size": '',
-                "timestamp": datetime.datetime.fromtimestamp(round(os.path.getmtime(os.path.join(path, entry))))
-            })
+            folderlist.append(
+                {
+                    "name": entry + "/",
+                    "size": "",
+                    "timestamp": datetime.datetime.fromtimestamp(
+                        round(os.path.getmtime(os.path.join(path, entry)))
+                    ),
+                }
+            )
         else:
-            filelist.append({
-                "name": entry,
-                "size": sizeof_fmt(os.path.getsize(os.path.join(path, entry))),
-                "timestamp": datetime.datetime.fromtimestamp(round(os.path.getmtime(os.path.join(path, entry))))
-            })
+            filelist.append(
+                {
+                    "name": entry,
+                    "size": sizeof_fmt(os.path.getsize(os.path.join(path, entry))),
+                    "timestamp": datetime.datetime.fromtimestamp(
+                        round(os.path.getmtime(os.path.join(path, entry)))
+                    ),
+                }
+            )
 
-    folderlist.sort(key=lambda e: e['name'])
-    filelist.sort(key=lambda e: e['name'])
+    folderlist.sort(key=lambda e: e["name"])
+    filelist.sort(key=lambda e: e["name"])
     return folderlist + filelist
