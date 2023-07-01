@@ -191,15 +191,16 @@ def send_directory(local_path, remote_url):
     if not os.path.isdir(local_path):
         raise IOError("This is not a directory.")
     contents = listdir(local_path)
+    url_without_slash = remote_url[:-1] if remote_url[-1] == '/' else remote_url
     if request.args.get("password"):
         return render_template(
             "directory.html",
-            directory=remote_url,
+            directory=url_without_slash,
             contents=contents,
             password=request.args.get("password"),
         )
     else:
-        return render_template("directory.html", directory=remote_url, contents=contents)
+        return render_template("directory.html", directory=url_without_slash, contents=contents)
 
 
 def listdir(path):
