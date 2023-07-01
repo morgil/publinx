@@ -174,7 +174,7 @@ def send_file_or_directory(location, original_request):
         if len(set(contents) & index_files) > 0:
             for candidate in contents:
                 if candidate in index_files:
-                    return send_file(os.path.join(full, candidate))
+                    return redirect(os.path.join(original_request, candidate))
         else:
             return send_directory(full, original_request)
     if os.path.isfile(full):
