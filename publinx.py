@@ -7,7 +7,7 @@ from enum import Enum
 
 import dateutil.parser
 import uwsgi
-from flask import Flask, Response, abort, render_template, request, send_file
+from flask import Flask, Response, abort, redirect, render_template, request, send_file
 
 app = Flask(__name__)
 
@@ -98,9 +98,7 @@ def parse_request(requested_path):
         auth = request.authorization
         if auth and auth.username in requested_entry["auth"]:
             if requested_entry["auth"][auth.username]["method"] == "plain":
-                authenticated = (
-                    requested_entry["auth"][auth.username]["password"] == auth.password
-                )
+                authenticated = requested_entry["auth"][auth.username]["password"] == auth.password
             else:
                 authenticated = hmac.compare_digest(
                     crypt.crypt(
@@ -113,10 +111,7 @@ def parse_request(requested_path):
             return Status.Unauthorized, descriptor
 
     # Is the file password protected?
-    if (
-        "password" in requested_entry
-        and request.args.get("password") != requested_entry["password"]
-    ):
+    if "password" in requested_entry and request.args.get("password") != requested_entry["password"]:
         return Status.NoPasswordProvided, descriptor
 
     # Check if the request maps to a different directory
@@ -204,9 +199,7 @@ def send_directory(local_path, remote_url):
             password=request.args.get("password"),
         )
     else:
-        return render_template(
-            "directory.html", directory=remote_url, contents=contents
-        )
+        return render_template("directory.html", directory=remote_url, contents=contents)
 
 
 def listdir(path):
@@ -241,9 +234,7 @@ def listdir(path):
                 {
                     "name": entry + "/",
                     "size": "",
-                    "timestamp": datetime.datetime.fromtimestamp(
-                        round(os.path.getmtime(os.path.join(path, entry)))
-                    ),
+                    "timestamp": datetime.datetime.fromtimestamp(round(os.path.getmtime(os.path.join(path, entry)))),
                 }
             )
         else:
@@ -251,9 +242,7 @@ def listdir(path):
                 {
                     "name": entry,
                     "size": sizeof_fmt(os.path.getsize(os.path.join(path, entry))),
-                    "timestamp": datetime.datetime.fromtimestamp(
-                        round(os.path.getmtime(os.path.join(path, entry)))
-                    ),
+                    "timestamp": datetime.datetime.fromtimestamp(round(os.path.getmtime(os.path.join(path, entry)))),
                 }
             )
 
