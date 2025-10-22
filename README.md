@@ -21,7 +21,7 @@ publinx is a uWSGI "app".
 
 For the installation of uWSGI and Python 3 (at least 3.4), consult a guide you trust.
 
-Additionally, install the Python modules python-dateutil, flask and uwsgi (if they are not installed yet).
+Additionally, install the Python modules bcrypt, python-dateutil, flask and uwsgi (if they are not installed yet): `pip install -r requirements.txt`
 
 
 # Configuration
@@ -104,7 +104,7 @@ Now you can only access this file via http://www.example.com/secret.file?passwor
 
 
 ## HTTP Authentication
-A more advanced way of protecting your files is via HTTP authentication. publinx supports plain-text and hashed passwords using `crypt(3)`.
+A more advanced way of protecting your files is via HTTP authentication. publinx supports plain-text and hashed passwords using bcrypt.
 ```json
 {
     "passwordprotected.file": {
@@ -114,8 +114,8 @@ A more advanced way of protecting your files is via HTTP authentication. publinx
                 "method": "plain"
             },
             "hasheduser": {
-                "password": "$5$3FdNNXpxYY$2PTBfx8/Tug1Hy5O8wC45WInwE.XareJbLB4c.sPW60",
-                "method": "crypt"
+                "password": "$2b$12$wttAyUhef4H.2GmKdUDd6uXwF5zQ2GzBd4B8t2gvfDIjwiwDmn8kC",
+                "method": "bcrypt"
             }
         }
     }
@@ -123,7 +123,12 @@ A more advanced way of protecting your files is via HTTP authentication. publinx
 ```
 The password protected file can now be accessed via HTTP authentication with `plaintextuser`/`plaintextpassword` or `hasheduser`/`password`.
 
-To generate a password hash, you can use a `crypt(3)` implementation of your choice, like `mkpasswd`.
+To generate a password hash, use the Python bcrypt library:
+```py
+import bcrypt
+hashed = bcrypt.hashpw(b"password", bcrypt.gensalt())
+print(hashed)
+```
 
 ## Expiring links
 

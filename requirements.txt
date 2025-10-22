@@ -1,3 +1,4 @@
-python-dateutil
-flask
-uwsgi
+bcrypt~=5.0.0
+flask~=3.1.2
+python-dateutil~=2.9.0.post0
+uWSGI~=2.0.31

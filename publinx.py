@@ -1,10 +1,10 @@
-import crypt
 import datetime
 import hmac
 import json
 import os
 from enum import Enum
 
+import bcrypt
 import dateutil.parser
 import uwsgi
 from flask import Flask, Response, abort, redirect, render_template, request, send_file
@@ -100,13 +100,7 @@ def parse_request(requested_path):
             if requested_entry["auth"][auth.username]["method"] == "plain":
                 authenticated = requested_entry["auth"][auth.username]["password"] == auth.password
             else:
-                authenticated = hmac.compare_digest(
-                    crypt.crypt(
-                        auth.password,
-                        requested_entry["auth"][auth.username]["password"],
-                    ),
-                    requested_entry["auth"][auth.username]["password"],
-                )
+                authenticated = bcrypt.checkpw(auth.password.encode(), requested_entry["auth"][auth.username]["password"].encode())
         if not (auth and auth.username in requested_entry["auth"] and authenticated):
             return Status.Unauthorized, descriptor
 
